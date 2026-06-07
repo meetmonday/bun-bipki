@@ -19,6 +19,7 @@
 	"dependencies": {
 		"@gramio/auto-answer-callback-query": "^0.0.3",
 		"@gramio/auto-retry": "^0.0.3",
+		"@gramio/autoload": "^1.1.0",
 		"@gramio/i18n": "^1.5.0",
 		"@gramio/init-data": "^0.0.5",
 		"@gramio/scenes": "^0.6.0",

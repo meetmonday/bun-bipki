@@ -1,3 +1,4 @@
+import { autoload } from "@gramio/autoload";
 import { Bot } from "gramio";
 import { config } from "./config.ts";
 import { economyComposer } from "./handlers/economy.ts";
@@ -11,4 +12,10 @@ export const bot = new Bot(config.BOT_TOKEN)
 	.extend(startComposer)
 	.extend(economyComposer)
 	.extend(webComposer)
-	.onStart(({ info }) => console.log(`✨ Bot ${info.username} was started!`));
+	.extend(autoload({ path: "./commands" }))
+	.onStart(async ({ info }) => {
+		await bot.syncCommands();
+		console.log(`✨ Bot ${info.username} was started!`);
+	});
+
+export type BotType = typeof bot;
