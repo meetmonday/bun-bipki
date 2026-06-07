@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+	--color-tg-bg: #17212b;
+	--color-tg-card: #242f3d;
+	--color-tg-card-hover: #2b394a;
+	--color-tg-primary: #2b5278;
+	--color-tg-accent: #5d9bdc;
+	--color-tg-text: #ffffff;
+	--color-tg-hint: #7f8c9b;
+	--color-tg-destructive: #c85a5a;
+	--color-tg-green: #64b5a0;
+	--color-tg-yellow: #d4a84b;
+	--color-tg-red: #c85a5a;
+	--color-tg-border: #2b394a;
+}
+
+body {
+	background: var(--color-tg-bg);
+	color: var(--color-tg-text);
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}

@@ -4,3 +4,12 @@ node_modules
 .env.production
 
 data/
+
+# SvelteKit
+web/build/
+web/.svelte-kit/
+
+# SQLite
+*.db
+*.db-journal
+
