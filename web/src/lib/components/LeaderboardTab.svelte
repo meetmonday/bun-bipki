@@ -2,18 +2,18 @@
 import { onMount } from "svelte";
 import { fetchStats, type Stats } from "$lib/api";
 
-let _stats = $state<Stats | null>(null);
-let _error = $state("");
+let stats = $state<Stats | null>(null);
+let error = $state("");
 
-function _fmtNum(n: number) {
+function fmtNum(n: number) {
 	return n.toLocaleString("ru-RU");
 }
 
 async function load() {
 	try {
-		_stats = await fetchStats();
+		stats = await fetchStats();
 	} catch (e) {
-		_error = String(e);
+		error = String(e);
 	}
 }
 

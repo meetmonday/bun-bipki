@@ -1,7 +1,10 @@
 <script lang="ts">
-let _activeTab = $state("holdings");
+import HoldingsTab from "$lib/components/HoldingsTab.svelte";
+import LeaderboardTab from "$lib/components/LeaderboardTab.svelte";
 
-function _goAdmin() {
+let activeTab = $state("holdings");
+
+function goAdmin() {
 	window.location.href = "/admin";
 }
 </script>

@@ -1,16 +1,21 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import type { Transaction, User } from "$lib/api";
 import { fetchMe, getTelegramInitData } from "$lib/api";
 
-let _loading = $state(true);
+let loading = $state(true);
+let user = $state<User | null>(null);
+let transactions = $state<Transaction[]>([]);
+let rank = $state<number | null>(null);
+let error = $state("");
 
 async function load() {
-	_loading = true;
+	loading = true;
 	error = "";
 	const id = getTelegramInitData();
 	if (!id) {
 		error = "Не удалось получить контекст Telegram. Откройте через Mini App.";
-		_loading = false;
+		loading = false;
 		return;
 	}
 	try {
@@ -18,11 +23,10 @@ async function load() {
 		user = me.user;
 		transactions = me.transactions;
 		rank = me.rank;
-		isAdmin = me.isAdmin;
 	} catch (e) {
 		error = String(e);
 	} finally {
-		_loading = false;
+		loading = false;
 	}
 }
 
@@ -32,11 +36,11 @@ onMount(() => {
 	return () => clearInterval(interval);
 });
 
-function _fmtNum(n: number) {
+function fmtNum(n: number) {
 	return n.toLocaleString("ru-RU");
 }
 
-function _fmtDate(iso: string) {
+function fmtDate(iso: string) {
 	return new Date(iso).toLocaleDateString("ru-RU", {
 		day: "numeric",
 		month: "long",
@@ -44,7 +48,7 @@ function _fmtDate(iso: string) {
 	});
 }
 
-function _badge(type: string) {
+function badge(type: string) {
 	if (type === "transfer") return "bg-tg-yellow/20 text-tg-yellow";
 	if (type === "daily_bonus") return "bg-tg-green/20 text-tg-green";
 	if (type === "admin_add" || type === "web_admin")
@@ -53,7 +57,7 @@ function _badge(type: string) {
 	return "bg-tg-hint/20 text-tg-hint";
 }
 
-function _typeLabel(type: string) {
+function typeLabel(type: string) {
 	switch (type) {
 		case "transfer":
 			return "Перевод";

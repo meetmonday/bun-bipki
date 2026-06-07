@@ -10,12 +10,12 @@ import {
 	type Stats,
 } from "$lib/api";
 
-let _verified = $state(false);
-let _notTgContext = $state(false);
+let verified = $state(false);
+let notTgContext = $state(false);
 
-let _stats = $state<Stats | null>(null);
+let stats = $state<Stats | null>(null);
 
-function _fmtNum(n: number) {
+function fmtNum(n: number) {
 	return n.toLocaleString("ru-RU");
 }
 
@@ -23,13 +23,13 @@ onMount(async () => {
 	const initData = getTelegramInitData();
 	if (initData) {
 		const result = await checkAdmin(initData);
-		if (result.isAdmin) _verified = true;
+		if (result.isAdmin) verified = true;
 	} else {
-		_notTgContext = true;
+		notTgContext = true;
 	}
 
 	try {
-		_stats = await fetchStats();
+		stats = await fetchStats();
 	} catch {
 		// stats are optional on admin page
 	}
@@ -37,63 +37,63 @@ onMount(async () => {
 
 let token = $state("");
 let msg = $state("");
-let _broadcastResult = $state("");
-let _broadcastError = $state("");
-let _broadcastLoading = $state(false);
+let broadcastResult = $state("");
+let broadcastError = $state("");
+let broadcastLoading = $state(false);
 
 let addUserId = $state(0);
 let addAmount = $state(0);
 let addCurrency = $state("bipki");
-let _addResult = $state("");
-let _addError = $state("");
-let _addLoading = $state(false);
+let addResult = $state("");
+let addError = $state("");
+let addLoading = $state(false);
 
 let lookupId = $state(0);
-let _lookupResult = $state("");
-let _lookupError = $state("");
-let _userData = $state("");
+let lookupResult = $state("");
+let lookupError = $state("");
+let userData = $state("");
 
-async function _handleBroadcast() {
+async function handleBroadcast() {
 	if (!token || !msg) return;
-	_broadcastResult = "";
-	_broadcastError = "";
-	_broadcastLoading = true;
+	broadcastResult = "";
+	broadcastError = "";
+	broadcastLoading = true;
 	try {
 		const res = await broadcast(token, msg);
-		_broadcastResult = `✅ Отправлено ${res.sent}, ошибок ${res.failed} из ${res.total}`;
+		broadcastResult = `✅ Отправлено ${res.sent}, ошибок ${res.failed} из ${res.total}`;
 	} catch (e) {
-		_broadcastError = `❌ ${e instanceof Error ? e.message : String(e)}`;
+		broadcastError = `❌ ${e instanceof Error ? e.message : String(e)}`;
 	} finally {
-		_broadcastLoading = false;
+		broadcastLoading = false;
 	}
 }
 
-async function _handleAddCoins() {
+async function handleAddCoins() {
 	if (!token || !addUserId || !addAmount) return;
-	_addResult = "";
-	_addError = "";
-	_addLoading = true;
+	addResult = "";
+	addError = "";
+	addLoading = true;
 	try {
 		await addCoins(token, addUserId, addAmount, addCurrency);
-		_addResult = `✅ Добавлено ${addAmount} ${addCurrency} пользователю ${addUserId}`;
+		addResult = `✅ Добавлено ${addAmount} ${addCurrency} пользователю ${addUserId}`;
 	} catch (e) {
-		_addError = `❌ ${e instanceof Error ? e.message : String(e)}`;
+		addError = `❌ ${e instanceof Error ? e.message : String(e)}`;
 	} finally {
-		_addLoading = false;
+		addLoading = false;
 	}
 }
 
-async function _handleLookup() {
+async function handleLookup() {
 	if (!token || !lookupId) return;
-	_lookupResult = "";
-	_lookupError = "";
+	lookupResult = "";
+	lookupError = "";
 	try {
 		const data = await fetchUser(lookupId);
-		_userData = JSON.stringify(data, null, 2);
-		_lookupResult = "✅ Пользователь найден";
+		userData = JSON.stringify(data, null, 2);
+		lookupResult = "✅ Пользователь найден";
 	} catch (e) {
-		_userData = "";
-		_lookupError = `❌ ${e instanceof Error ? e.message : String(e)}`;
+		userData = "";
+		lookupError = `❌ ${e instanceof Error ? e.message : String(e)}`;
 	}
 }
 </script>
