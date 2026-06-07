@@ -1,0 +1,20 @@
+services:
+    bot:
+        container_name: bun-bipki-bot
+        restart: unless-stopped
+        build:
+            context: .
+            dockerfile: Dockerfile
+        environment:
+            - NODE_ENV=production
+        env_file:
+            - path: ./.env
+              required: false
+            - path: ./.env.production
+              required: false
+        volumes:
+            - bot_data:/usr/src/app/data
+            - ./drizzle:/usr/src/app/drizzle
+
+volumes:
+    bot_data:
