@@ -1,7 +1,7 @@
 import { bot } from "./bot.ts";
 import { config } from "./config.ts";
 import { tunnelManager } from "./services/tunnel.ts";
-import { startWebServer } from "./web/index.ts";
+import { startWebServer, stopWebServer } from "./web/index.ts";
 
 const signals = ["SIGINT", "SIGTERM"];
 
@@ -9,6 +9,7 @@ for (const signal of signals) {
 	process.on(signal, async () => {
 		console.log(`Received ${signal}. Initiating graceful shutdown...`);
 		tunnelManager.stop();
+		stopWebServer();
 		await bot.stop();
 		process.exit(0);
 	});

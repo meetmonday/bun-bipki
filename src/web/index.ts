@@ -1,3 +1,4 @@
+import { resolve, sep } from "node:path";
 import {
 	getBotTokenSecretKey,
 	validateAndParseInitData,
@@ -252,18 +253,97 @@ async function handleAddCoins(req: Request) {
 	}
 }
 
+async function handleDaily(req: Request) {
+	const body = (await req.json()) as { initData?: string };
+	if (!body.initData) {
+		return json({ error: "initData is required" }, 400);
+	}
+
+	const result = validateAndParseInitData(body.initData, initDataSecretKey);
+	if (!result?.user) {
+		return json({ error: "Invalid init data" }, 401);
+	}
+
+	const { claimDailyBonus } = await import("../services/economy.ts");
+
+	try {
+		const bonus = await claimDailyBonus(result.user.id);
+		return json(bonus);
+	} catch (err) {
+		return json(
+			{ error: err instanceof Error ? err.message : "Unknown error" },
+			400,
+		);
+	}
+}
+
+async function handleTransfer(req: Request) {
+	const body = (await req.json()) as {
+		initData?: string;
+		toUserId?: number;
+		amount?: number;
+	};
+
+	if (!body.initData || !body.toUserId || !body.amount) {
+		return json({ error: "initData, toUserId, and amount are required" }, 400);
+	}
+
+	const result = validateAndParseInitData(body.initData, initDataSecretKey);
+	if (!result?.user) {
+		return json({ error: "Invalid init data" }, 401);
+	}
+
+	const fromUserId = result.user.id;
+	const toUserId = body.toUserId;
+	if (fromUserId === toUserId) {
+		return json({ error: "Cannot transfer to yourself" }, 400);
+	}
+
+	const { transfer } = await import("../services/economy.ts");
+
+	try {
+		await transfer(fromUserId, toUserId, body.amount);
+		return json({ success: true });
+	} catch (err) {
+		return json(
+			{ error: err instanceof Error ? err.message : "Transfer failed" },
+			400,
+		);
+	}
+}
+
+const WEB_ROOT = resolve("web/build");
+
 async function serveStatic(pathname: string): Promise<Response | null> {
 	if (config.NODE_ENV !== "production") return null;
 
-	const filePath = pathname === "/" ? "/index.html" : pathname;
-	const file = Bun.file(`web/build${filePath}`);
-	const exists = await file.exists();
-	if (!exists) return null;
+	// path traversal protection
+	const requested = resolve(WEB_ROOT, pathname.slice(1));
+	if (!requested.startsWith(WEB_ROOT + sep)) return null;
 
-	return new Response(file, {
-		headers: { "Content-Type": file.type || "application/octet-stream" },
-	});
+	const file = Bun.file(
+		pathname === "/" ? `${WEB_ROOT}/index.html` : requested,
+	);
+	if (await file.exists()) {
+		return new Response(file, {
+			headers: {
+				"Content-Type": file.type || "application/octet-stream",
+			},
+		});
+	}
+
+	// SPA fallback — try index.html inside the directory
+	const dirIndex = Bun.file(`${requested}/index.html`);
+	if (await dirIndex.exists()) {
+		return new Response(dirIndex, {
+			headers: { "Content-Type": "text/html; charset=utf-8" },
+		});
+	}
+
+	return null;
 }
+
+let server: ReturnType<typeof Bun.serve> | null = null;
 
 export function startWebServer() {
 	const port = config.WEB_PORT;
@@ -273,7 +353,7 @@ export function startWebServer() {
 		tunnelManager.start(targetUrl, config.CLOUDFLARE_TUNNEL_TOKEN || undefined);
 	}
 
-	Bun.serve({
+	server = Bun.serve({
 		port,
 		async fetch(req, server) {
 			const url = new URL(req.url);
@@ -318,6 +398,12 @@ export function startWebServer() {
 				}
 				if (path === "/api/coins/add" && req.method === "POST") {
 					return await handleAddCoins(req);
+				}
+				if (path === "/api/daily" && req.method === "POST") {
+					return await handleDaily(req);
+				}
+				if (path === "/api/transfer" && req.method === "POST") {
+					return await handleTransfer(req);
 				}
 				if (path === "/api/admin/check" && req.method === "POST") {
 					return await handleAdminCheck(req);
@@ -387,4 +473,9 @@ export function startWebServer() {
 	console.log(
 		`  ⏳ Cloudflare Tunnel запускается... URL появится ниже когда туннель будет готов\n`,
 	);
+}
+
+export function stopWebServer() {
+	server?.stop();
+	server = null;
 }

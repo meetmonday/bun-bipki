@@ -21,7 +21,7 @@ export const config = {
 
 	CLOUDFLARE_TUNNEL_ENABLED: env
 		.get("CLOUDFLARE_TUNNEL_ENABLED")
-		.default("true")
+		.default("false")
 		.asBoolStrict(),
 	CLOUDFLARE_TUNNEL_TOKEN: env
 		.get("CLOUDFLARE_TUNNEL_TOKEN")

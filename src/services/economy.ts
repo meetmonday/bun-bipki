@@ -53,7 +53,6 @@ export async function transfer(
 	fromId: number,
 	toId: number,
 	amount: number,
-	currency: Currency,
 	description?: string,
 ) {
 	return db.transaction(async (tx) => {
@@ -65,10 +64,7 @@ export async function transfer(
 
 		if (!fromUser) throw new Error("Sender not found");
 
-		const senderBalance =
-			currency === "bipki" ? fromUser.bipki : fromUser.megabipki;
-
-		if (senderBalance < amount) throw new Error("Insufficient funds");
+		if (fromUser.bipki < amount) throw new Error("Insufficient funds");
 
 		const toUser = await tx
 			.select()
@@ -78,31 +74,17 @@ export async function transfer(
 
 		if (!toUser) throw new Error("Recipient not found");
 
-		if (currency === "bipki") {
-			await tx
-				.update(usersTable)
-				.set({ bipki: sql`${usersTable.bipki} - ${amount}` })
-				.where(eq(usersTable.id, fromId))
-				.run();
+		await tx
+			.update(usersTable)
+			.set({ bipki: sql`${usersTable.bipki} - ${amount}` })
+			.where(eq(usersTable.id, fromId))
+			.run();
 
-			await tx
-				.update(usersTable)
-				.set({ bipki: sql`${usersTable.bipki} + ${amount}` })
-				.where(eq(usersTable.id, toId))
-				.run();
-		} else {
-			await tx
-				.update(usersTable)
-				.set({ megabipki: sql`${usersTable.megabipki} - ${amount}` })
-				.where(eq(usersTable.id, fromId))
-				.run();
-
-			await tx
-				.update(usersTable)
-				.set({ megabipki: sql`${usersTable.megabipki} + ${amount}` })
-				.where(eq(usersTable.id, toId))
-				.run();
-		}
+		await tx
+			.update(usersTable)
+			.set({ bipki: sql`${usersTable.bipki} + ${amount}` })
+			.where(eq(usersTable.id, toId))
+			.run();
 
 		await tx
 			.insert(transactionsTable)
@@ -110,7 +92,7 @@ export async function transfer(
 				fromUserId: fromId,
 				toUserId: toId,
 				amount,
-				currency,
+				currency: "bipki",
 				type: "transfer",
 				description: description ?? null,
 			})

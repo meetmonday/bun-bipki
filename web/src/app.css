@@ -1,23 +1,276 @@
 @import "tailwindcss";
 
 @theme {
-	--color-tg-bg: #17212b;
-	--color-tg-card: #242f3d;
-	--color-tg-card-hover: #2b394a;
-	--color-tg-primary: #2b5278;
-	--color-tg-accent: #5d9bdc;
-	--color-tg-text: #ffffff;
-	--color-tg-hint: #7f8c9b;
-	--color-tg-destructive: #c85a5a;
-	--color-tg-green: #64b5a0;
-	--color-tg-yellow: #d4a84b;
-	--color-tg-red: #c85a5a;
-	--color-tg-border: #2b394a;
+	--color-tg-bg: var(--tg-theme-bg-color, #ffffff);
+	--color-tg-card: var(--tg-theme-secondary-bg-color, #f5f5f5);
+	--color-tg-card-hover: var(--tg-theme-section-separator-color, #e0e0e0);
+	--color-tg-primary: var(--tg-theme-button-color, #40a7e3);
+	--color-tg-accent: var(--tg-theme-accent-text-color, #40a7e3);
+	--color-tg-text: var(--tg-theme-text-color, #000000);
+	--color-tg-hint: var(--tg-theme-hint-color, #999999);
+	--color-tg-border: var(--tg-theme-section-separator-color, #e0e0e0);
+	--color-tg-red: var(--tg-theme-destructive-text-color, #e53935);
+	--color-tg-section: var(--tg-theme-section-bg-color, #f0f0f0);
+	--color-tg-header: var(--tg-theme-header-bg-color, #ffffff);
+	--color-tg-bottom: var(--tg-theme-bottom-bar-bg-color, #ffffff);
+
+	--color-gold: #d4a853;
+	--color-gold-light: #e8c46a;
+	--color-gold-dark: #b8862d;
+	--color-silver: #8a8fa8;
+	--color-sapphire: #6c5ce7;
+	--color-emerald: #3dd68c;
+	--color-ruby: #e5484d;
+
+	--font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+	--font-sans:
+		"Sora", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+	--animate-fade-in: fade-in 0.6s ease-out forwards;
+	--animate-scale-in: scale-in 0.4s ease-out forwards;
+	--animate-slide-up: slide-up 0.5s ease-out forwards;
+	--animate-shimmer: shimmer 2s infinite linear;
+	--animate-counter: counter 2s ease-out forwards;
+	--animate-float: float 3s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.92);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes slide-up {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -200% 0;
+	}
+	100% {
+		background-position: 200% 0;
+	}
+}
+
+@keyframes float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-4px);
+	}
+}
+
+@keyframes pulse-glow {
+	0%,
+	100% {
+		box-shadow: 0 0 8px
+			color-mix(
+				in srgb,
+				var(--tg-theme-accent-text-color, #40a7e3) 20%,
+				transparent
+			);
+	}
+	50% {
+		box-shadow: 0 0 20px
+			color-mix(
+				in srgb,
+				var(--tg-theme-accent-text-color, #40a7e3) 40%,
+				transparent
+			);
+	}
+}
+
+@keyframes count-up {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 body {
-	background: var(--color-tg-bg);
-	color: var(--color-tg-text);
-	font-family:
-		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	margin: 0;
+	padding: 0;
+	font-family: var(--font-sans);
+	background: var(--tg-theme-bg-color, #f5f5f7);
+	color: var(--tg-theme-text-color, #1c1c1e);
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	overscroll-behavior: none;
+}
+
+/* Elegant scrollbar */
+::-webkit-scrollbar {
+	width: 3px;
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+::-webkit-scrollbar-thumb {
+	background: var(--tg-theme-hint-color, #999);
+	border-radius: 99px;
+}
+
+::selection {
+	background: color-mix(
+		in srgb,
+		var(--tg-theme-accent-text-color, #40a7e3) 30%,
+		transparent
+	);
+	color: var(--tg-theme-text-color, #000);
+}
+
+.safe-area-pb {
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-area-pt {
+	padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Glass card base */
+.glass-card {
+	background: color-mix(
+		in srgb,
+		var(--tg-theme-secondary-bg-color, #f5f5f5) 70%,
+		transparent
+	);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	border: 1px solid
+		color-mix(
+			in srgb,
+			var(--tg-theme-section-separator-color, #e0e0e0) 40%,
+			transparent
+		);
+}
+
+/* Gradient text utility */
+.gradient-text {
+	background: linear-gradient(
+		135deg,
+		var(--color-gold-light),
+		var(--color-gold)
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.gradient-text-sapphire {
+	background: linear-gradient(135deg, #a29bfe, var(--color-sapphire));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+/* Noise overlay */
+.noise-overlay::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	opacity: 0.015;
+	background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+	background-repeat: repeat;
+	pointer-events: none;
+	z-index: 0;
+}
+
+/* Balance number */
+.balance-number {
+	font-family: var(--font-display);
+	font-size: clamp(2.5rem, 8vw, 4rem);
+	line-height: 1;
+	letter-spacing: -0.02em;
+}
+
+/* Serif heading */
+.serif-heading {
+	font-family: var(--font-display);
+	font-weight: 400;
+	letter-spacing: -0.01em;
+}
+
+/* Animated count-in for elements */
+.animate-in {
+	opacity: 0;
+	animation: slide-up 0.5s ease-out forwards;
+}
+
+.animate-in:nth-child(1) {
+	animation-delay: 0.05s;
+}
+.animate-in:nth-child(2) {
+	animation-delay: 0.12s;
+}
+.animate-in:nth-child(3) {
+	animation-delay: 0.2s;
+}
+.animate-in:nth-child(4) {
+	animation-delay: 0.28s;
+}
+.animate-in:nth-child(5) {
+	animation-delay: 0.36s;
+}
+.animate-in:nth-child(6) {
+	animation-delay: 0.44s;
+}
+.animate-in:nth-child(7) {
+	animation-delay: 0.52s;
+}
+.animate-in:nth-child(8) {
+	animation-delay: 0.6s;
+}
+
+.tab-content {
+	animation: fade-in 0.3s ease-out;
+}
+
+/* Divider with gradient */
+.gradient-divider {
+	height: 1px;
+	border: none;
+	background: linear-gradient(
+		to right,
+		transparent,
+		color-mix(
+				in srgb,
+				var(--tg-theme-section-separator-color, #e0e0e0) 60%,
+				transparent
+			)
+			20%,
+		color-mix(
+				in srgb,
+				var(--tg-theme-section-separator-color, #e0e0e0) 60%,
+				transparent
+			)
+			80%,
+		transparent
+	);
 }

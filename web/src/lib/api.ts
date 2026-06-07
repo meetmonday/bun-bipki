@@ -1,10 +1,5 @@
 const BASE = "";
 
-/**
- * Извлекает raw initData строку из Telegram Web App.
- * На мобильных устройствах: window.Telegram.WebApp.initData
- * На Telegram Desktop: из URL hash (#tgWebAppData=...)
- */
 export function getTelegramInitData(): string | null {
 	const tg = window.Telegram?.WebApp;
 	if (tg?.initData) return tg.initData;
@@ -92,13 +87,6 @@ export async function fetchTransactions(
 	return res.json();
 }
 
-export async function fetchUsers(
-	page = 1,
-): Promise<{ users: User[]; total: number; pages: number }> {
-	const res = await fetch(`${BASE}/api/users?page=${page}`);
-	return res.json();
-}
-
 export async function fetchUser(
 	id: number,
 ): Promise<{ user: User; transactions: Transaction[] }> {
@@ -159,4 +147,36 @@ export async function addCoins(
 		const err = await res.json();
 		throw new Error(err.error);
 	}
+}
+
+export async function claimDailyBonus(
+	initData: string,
+): Promise<{ bipki: number; megabipki: number }> {
+	const res = await fetch(`${BASE}/api/daily`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ initData }),
+	});
+	if (!res.ok) {
+		const err = await res.json();
+		throw new Error(err.error || "Failed to claim daily bonus");
+	}
+	return res.json();
+}
+
+export async function fetchTransfer(
+	initData: string,
+	toUserId: number,
+	amount: number,
+): Promise<{ success: boolean }> {
+	const res = await fetch(`${BASE}/api/transfer`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ initData, toUserId, amount }),
+	});
+	if (!res.ok) {
+		const err = await res.json();
+		throw new Error(err.error || "Transfer failed");
+	}
+	return res.json();
 }

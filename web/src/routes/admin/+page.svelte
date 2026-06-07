@@ -98,150 +98,165 @@ async function handleLookup() {
 }
 </script>
 
-<div class="max-w-2xl mx-auto">
+<div class="min-h-screen px-4 pt-4 pb-8 max-w-2xl mx-auto">
 	<div class="mb-6 flex items-center justify-between">
-		<a href="/" class="text-sm text-tg-hint hover:text-tg-accent transition-colors">← Dashboard</a>
+		<a href="/" class="text-sm text-[var(--tg-theme-hint-color,#999)] hover:text-[var(--tg-theme-accent-text-color)] transition-colors flex items-center gap-1">
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+			На главную
+		</a>
 		{#if verified}
-			<span class="text-xs text-tg-green bg-tg-green/10 px-2 py-1 rounded">✓ Админ подтверждён</span>
+			<span class="text-xs text-[var(--color-emerald)] bg-[var(--color-emerald)]/10 px-3 py-1.5 rounded-full font-medium">Админ подтверждён</span>
 		{/if}
 	</div>
 
-	<h1 class="text-2xl font-bold mb-6"><span class="text-tg-accent">⚙</span> Admin Panel</h1>
+	<div class="mb-8">
+		<h1 class="serif-heading text-2xl mb-1">Панель управления</h1>
+		<p class="text-sm text-[var(--tg-theme-hint-color,#999)]">Управление ботом и валютой</p>
+	</div>
 
 	{#if notTgContext}
-		<div class="bg-tg-yellow/10 border border-tg-yellow/20 rounded-xl p-4 mb-6 text-sm text-tg-hint">
-			⚠️ Не удалось получить контекст Telegram. Автоматическая авторизация недоступна.
-			Админ-действия требуют <strong>WEB_SECRET</strong> ниже.
+		<div class="glass-card rounded-2xl p-4 mb-6 text-sm text-[var(--tg-theme-hint-color,#999)] flex items-center gap-3">
+			<span class="text-lg">⚠️</span>
+			<span>Не удалось получить контекст Telegram. Авторизация через <strong>WEB_SECRET</strong> ниже.</span>
 		</div>
 	{/if}
 
 	{#if stats}
 		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-			<div class="bg-tg-card border border-tg-border rounded-xl p-4">
-				<div class="text-xs text-tg-hint mb-1">Пользователи</div>
-				<div class="text-2xl font-bold">{fmtNum(stats.users.total)}</div>
+			<div class="glass-card rounded-2xl p-4">
+				<div class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-1 uppercase tracking-wider">Пользователи</div>
+				<div class="text-2xl font-bold serif-heading">{fmtNum(stats.users.total)}</div>
 			</div>
-			<div class="bg-tg-card border border-tg-border rounded-xl p-4">
-				<div class="text-xs text-tg-hint mb-1">Bipki</div>
-				<div class="text-2xl font-bold">{fmtNum(stats.economy.totalBipki)}</div>
+			<div class="glass-card rounded-2xl p-4">
+				<div class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-1 uppercase tracking-wider">Bipki</div>
+				<div class="text-2xl font-bold serif-heading gradient-text">{fmtNum(stats.economy.totalBipki)}</div>
 			</div>
-			<div class="bg-tg-card border border-tg-border rounded-xl p-4">
-				<div class="text-xs text-tg-hint mb-1">Megabipki</div>
-				<div class="text-2xl font-bold">{fmtNum(stats.economy.totalMegabipki)}</div>
+			<div class="glass-card rounded-2xl p-4">
+				<div class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-1 uppercase tracking-wider">Megabipki</div>
+				<div class="text-2xl font-bold serif-heading gradient-text-sapphire">{fmtNum(stats.economy.totalMegabipki)}</div>
 			</div>
-			<div class="bg-tg-card border border-tg-border rounded-xl p-4">
-				<div class="text-xs text-tg-hint mb-1">Транзакций сегодня</div>
-				<div class="text-2xl font-bold">{fmtNum(stats.transactions.today)}</div>
+			<div class="glass-card rounded-2xl p-4">
+				<div class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-1 uppercase tracking-wider">Сегодня</div>
+				<div class="text-2xl font-bold serif-heading">{fmtNum(stats.transactions.today)}</div>
 			</div>
 		</div>
 
-		<div class="bg-tg-card border border-tg-border rounded-xl p-4 mb-6">
+		<div class="glass-card rounded-2xl p-4 mb-6">
 			<div class="flex items-center gap-2 text-sm">
-				<span class="inline-block w-2 h-2 rounded-full {stats.tunnel.status === 'running' ? 'bg-tg-green' : stats.tunnel.status === 'error' ? 'bg-tg-red' : 'bg-tg-yellow'}"></span>
-				<span class="text-tg-hint">Туннель:</span>
-				<span>{stats.tunnel.url ? stats.tunnel.url.replace(/^https?:\/\//, "") : stats.tunnel.status === "starting" ? "Запуск..." : stats.tunnel.status === "error" ? "Ошибка" : "Выключен"}</span>
+				<span
+					class="inline-block w-2 h-2 rounded-full
+						{stats.tunnel.status === 'running' ? 'bg-[var(--color-emerald)]' : stats.tunnel.status === 'error' ? 'bg-[var(--color-ruby)]' : 'bg-[var(--color-gold)]'}"
+				></span>
+				<span class="text-[var(--tg-theme-hint-color,#999)]">Туннель:</span>
+				<span class="text-sm">
+					{stats.tunnel.url ? stats.tunnel.url.replace(/^https?:\/\//, "") : stats.tunnel.status === "starting" ? "Запуск..." : stats.tunnel.status === "error" ? "Ошибка" : "Выключен"}
+				</span>
 			</div>
 		</div>
 	{/if}
 
-	<div class="bg-tg-card border border-tg-border rounded-xl p-6 mb-4">
-		<h2 class="text-base font-semibold mb-4">🔐 Secret Token</h2>
+	<div class="glass-card rounded-2xl p-5 mb-4">
+		<h2 class="text-base font-semibold mb-4 flex items-center gap-2">
+			<svg class="w-4 h-4 text-[var(--tg-theme-hint-color,#999)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+			Ключ доступа
+		</h2>
 		<input
 			type="password"
 			bind:value={token}
 			placeholder="WEB_SECRET из .env"
-			class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text placeholder:text-tg-hint/50 outline-none focus:border-tg-primary transition-colors"
+			class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] placeholder:text-[var(--tg-theme-hint-color,#999)]/50 outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
 		/>
-		<p class="text-xs text-tg-hint mt-1">Токен не сохраняется — передаётся с каждым запросом</p>
+		<p class="text-xs text-[var(--tg-theme-hint-color,#999)] mt-2">Токен передаётся с каждым запросом, не сохраняется локально</p>
 	</div>
 
-	<div class="bg-tg-card border border-tg-border rounded-xl p-6 mb-4">
-		<h2 class="text-base font-semibold mb-4">📢 Рассылка</h2>
-		<label for="msg" class="block text-xs text-tg-hint mb-1">Сообщение всем пользователям</label>
+	<div class="glass-card rounded-2xl p-5 mb-4">
+		<h2 class="text-base font-semibold mb-1">Рассылка</h2>
+		<p class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-4">Отправить сообщение всем пользователям бота</p>
 		<textarea
 			id="msg"
 			bind:value={msg}
 			placeholder="Текст сообщения..."
-			class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text placeholder:text-tg-hint/50 outline-none focus:border-tg-primary transition-colors resize-vertical min-h-[80px]"
+			class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] placeholder:text-[var(--tg-theme-hint-color,#999)]/50 outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors resize-vertical min-h-[90px]"
 		></textarea>
-		<button
-			onclick={handleBroadcast}
-			disabled={!token || !msg || broadcastLoading}
-			class="mt-3 px-5 py-2.5 rounded-lg bg-tg-accent text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-		>{broadcastLoading ? "Отправка..." : "Отправить"}</button>
+		<div class="flex items-center justify-between mt-3">
+			<button
+				onclick={handleBroadcast}
+				disabled={!token || !msg || broadcastLoading}
+				class="px-6 py-2.5 rounded-xl bg-[var(--tg-theme-button-color,#40a7e3)] text-white text-sm font-semibold hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+			>{broadcastLoading ? "Отправка..." : "Отправить"}</button>
+			<span class="text-xs text-[var(--tg-theme-hint-color,#999)]">{stats ? `${fmtNum(stats.users.total)} получателей` : ''}</span>
+		</div>
 		{#if broadcastResult}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-green/10 text-tg-green border border-tg-green/20">{broadcastResult}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-emerald)]/10 text-[var(--color-emerald)]">{broadcastResult}</div>
 		{/if}
 		{#if broadcastError}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-red/10 text-tg-red border border-tg-red/20">{broadcastError}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-ruby)]/10 text-[var(--color-ruby)]">{broadcastError}</div>
 		{/if}
 	</div>
 
-	<hr class="border-tg-border my-6" />
-
-	<div class="bg-tg-card border border-tg-border rounded-xl p-6 mb-4">
-		<h2 class="text-base font-semibold mb-4">💰 Добавить валюту</h2>
+	<div class="glass-card rounded-2xl p-5 mb-4">
+		<h2 class="text-base font-semibold mb-1">Эмиссия валюты</h2>
+		<p class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-4">Начислить валюту пользователю</p>
 		<div class="flex gap-3 items-end flex-wrap">
 			<div class="flex-1 min-w-[120px]">
-				<label for="add-user-id" class="block text-xs text-tg-hint mb-1">User ID</label>
-				<input type="number" id="add-user-id" bind:value={addUserId} placeholder="Telegram ID"
-					class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text placeholder:text-tg-hint/50 outline-none focus:border-tg-primary transition-colors"
+				<label for="add-user-id" class="block text-xs text-[var(--tg-theme-hint-color,#999)] mb-1.5">ID пользователя</label>
+				<input id="add-user-id" type="number" bind:value={addUserId} placeholder="Telegram ID"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] placeholder:text-[var(--tg-theme-hint-color,#999)]/50 outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
 				/>
 			</div>
 			<div class="flex-1 min-w-[100px]">
-				<label for="add-amount" class="block text-xs text-tg-hint mb-1">Сумма</label>
-				<input type="number" id="add-amount" bind:value={addAmount} placeholder="100"
-					class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text placeholder:text-tg-hint/50 outline-none focus:border-tg-primary transition-colors"
+				<label for="add-amount" class="block text-xs text-[var(--tg-theme-hint-color,#999)] mb-1.5">Сумма</label>
+				<input id="add-amount" type="number" bind:value={addAmount} placeholder="100"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] placeholder:text-[var(--tg-theme-hint-color,#999)]/50 outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
 				/>
 			</div>
-			<div class="min-w-[120px]">
-				<label for="add-currency" class="block text-xs text-tg-hint mb-1">Валюта</label>
+			<div class="min-w-[130px]">
+				<label for="add-currency" class="block text-xs text-[var(--tg-theme-hint-color,#999)] mb-1.5">Валюта</label>
 				<select id="add-currency" bind:value={addCurrency}
-					class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text outline-none focus:border-tg-primary transition-colors"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
 				>
-					<option value="bipki">Bipki</option>
-					<option value="megabipki">Megabipki</option>
+					<option value="bipki">Bipki 🪙</option>
+					<option value="megabipki">Megabipki 💎</option>
 				</select>
 			</div>
+			<button
+				onclick={handleAddCoins}
+				disabled={!token || !addUserId || !addAmount || addLoading}
+				class="px-6 py-3 rounded-xl bg-[var(--color-gold)] text-white text-sm font-semibold hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+			>{addLoading ? "..." : "Начислить"}</button>
 		</div>
-		<button
-			onclick={handleAddCoins}
-			disabled={!token || !addUserId || !addAmount || addLoading}
-			class="mt-3 px-5 py-2.5 rounded-lg bg-tg-accent text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-		>{addLoading ? "Загрузка..." : "Добавить"}</button>
 		{#if addResult}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-green/10 text-tg-green border border-tg-green/20">{addResult}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-emerald)]/10 text-[var(--color-emerald)]">{addResult}</div>
 		{/if}
 		{#if addError}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-red/10 text-tg-red border border-tg-red/20">{addError}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-ruby)]/10 text-[var(--color-ruby)]">{addError}</div>
 		{/if}
 	</div>
 
-	<hr class="border-tg-border my-6" />
-
-	<div class="bg-tg-card border border-tg-border rounded-xl p-6 mb-4">
-		<h2 class="text-base font-semibold mb-4">📋 Информация о пользователе</h2>
+	<div class="glass-card rounded-2xl p-5 mb-4">
+		<h2 class="text-base font-semibold mb-1">Поиск пользователя</h2>
+		<p class="text-xs text-[var(--tg-theme-hint-color,#999)] mb-4">Просмотр информации о пользователе по ID</p>
 		<div class="flex gap-3 items-end">
 			<div class="flex-1 max-w-xs">
-				<label for="lookup-id" class="block text-xs text-tg-hint mb-1">User ID</label>
-				<input type="number" id="lookup-id" bind:value={lookupId} placeholder="Telegram ID"
-					class="w-full px-3 py-2.5 rounded-lg bg-tg-bg border border-tg-border text-sm text-tg-text placeholder:text-tg-hint/50 outline-none focus:border-tg-primary transition-colors"
+				<label for="lookup-id" class="block text-xs text-[var(--tg-theme-hint-color,#999)] mb-1.5">ID пользователя</label>
+				<input id="lookup-id" type="number" bind:value={lookupId} placeholder="Telegram ID"
+					class="w-full px-4 py-3 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] border border-[var(--tg-theme-section-separator-color,#e0e0e0)] text-sm text-[var(--tg-theme-text-color,#000)] placeholder:text-[var(--tg-theme-hint-color,#999)]/50 outline-none focus:border-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
 				/>
 			</div>
+			<button
+				onclick={handleLookup}
+				disabled={!token || !lookupId}
+				class="px-6 py-3 rounded-xl bg-[var(--tg-theme-button-color,#40a7e3)] text-white text-sm font-semibold hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+			>Найти</button>
 		</div>
-		<button
-			onclick={handleLookup}
-			disabled={!token || !lookupId}
-			class="mt-3 px-5 py-2.5 rounded-lg bg-tg-accent text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-		>Найти</button>
 		{#if lookupResult}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-green/10 text-tg-green border border-tg-green/20">{lookupResult}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-emerald)]/10 text-[var(--color-emerald)]">{lookupResult}</div>
 		{/if}
 		{#if lookupError}
-			<div class="mt-3 p-3 rounded-lg text-sm bg-tg-red/10 text-tg-red border border-tg-red/20">{lookupError}</div>
+			<div class="mt-3 p-3 rounded-xl text-sm bg-[var(--color-ruby)]/10 text-[var(--color-ruby)]">{lookupError}</div>
 		{/if}
 		{#if userData}
-			<pre class="mt-3 p-3 rounded-lg bg-tg-bg text-xs text-tg-hint overflow-x-auto whitespace-pre-wrap">{userData}</pre>
+			<pre class="mt-3 p-4 rounded-xl bg-[var(--tg-theme-bg-color,#f5f5f7)] text-xs text-[var(--tg-theme-hint-color,#999)] overflow-x-auto whitespace-pre-wrap font-mono">{userData}</pre>
 		{/if}
 	</div>
 </div>
