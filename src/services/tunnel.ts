@@ -144,11 +144,14 @@ export class TunnelManager {
 
 	private onUrl(url: string) {
 		this.info = { ...this.info, url, status: "running" };
-		const border = "═".repeat(url.length + 4);
-		console.log(`\n  ╔${border}╗`);
-		console.log(`  ║  🌐 Web UI: ${url}  ║`);
-		console.log(`  ╚${border}╝\n`);
+		console.log(`🌐 Web UI: ${url}`);
 		this.urlResolve?.(url);
+	}
+
+	setUrl(url: string): void {
+		if (!this.info.url) {
+			this.onUrl(url);
+		}
 	}
 
 	stop(): void {

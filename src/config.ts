@@ -27,4 +27,8 @@ export const config = {
 		.get("CLOUDFLARE_TUNNEL_TOKEN")
 		.default("")
 		.asString(),
+	CLOUDFLARE_TUNNEL_URL: env
+		.get("CLOUDFLARE_TUNNEL_URL")
+		.default("")
+		.asString(),
 };
