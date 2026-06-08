@@ -9,6 +9,8 @@
 	"dependencies": {
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.20.7",
+		"@telegram-apps/bridge": "^2.11.0",
+		"@telegram-apps/sdk": "^3.11.8",
 		"svelte": "^5.28.2",
 		"vite": "^6.3.5"
 	},

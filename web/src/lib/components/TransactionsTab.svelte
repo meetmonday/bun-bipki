@@ -2,15 +2,17 @@
 import { onMount } from "svelte";
 import type { Transaction } from "$lib/api";
 import { fetchMe, getTelegramInitData, type User } from "$lib/api";
+import { copyToClipboard, fmtId } from "$lib/format";
 
 let loading = $state(true);
 let user = $state<User | null>(null);
 let transactions = $state<Transaction[]>([]);
 let error = $state("");
 
-type Filter = "all" | "incoming" | "outgoing" | "bonus" | "admin";
+type Filter = "all" | "incoming" | "outgoing" | "bonus" | "admin" | "games";
 
 let activeFilter = $state<Filter>("all");
+let copiedUserId = $state<number | null>(null);
 
 function fmtNum(n: number) {
 	return n.toLocaleString("ru-RU");
@@ -36,6 +38,14 @@ async function load() {
 	}
 }
 
+async function handleCopyId(rawId: number) {
+	await copyToClipboard(String(rawId));
+	copiedUserId = rawId;
+	setTimeout(() => {
+		if (copiedUserId === rawId) copiedUserId = null;
+	}, 1500);
+}
+
 function getFiltered(): Transaction[] {
 	if (!user) return [];
 	return transactions.filter((tx) => {
@@ -57,6 +67,8 @@ function getFiltered(): Transaction[] {
 					tx.type === "web_admin" ||
 					tx.type === "admin_remove"
 				);
+			case "games":
+				return tx.type === "game_win" || tx.type === "game_lose";
 			default:
 				return true;
 		}
@@ -115,6 +127,10 @@ function typeIcon(type: string) {
 			return "🏛️";
 		case "admin_remove":
 			return "🏛️";
+		case "game_win":
+			return "🎉";
+		case "game_lose":
+			return "😔";
 		default:
 			return "•";
 	}
@@ -131,6 +147,10 @@ function typeLabel(type: string) {
 			return "Начисление";
 		case "admin_remove":
 			return "Списание";
+		case "game_win":
+			return "Выигрыш 🎮";
+		case "game_lose":
+			return "Проигрыш 🎮";
 		default:
 			return type;
 	}
@@ -141,13 +161,12 @@ const filters: { id: Filter; label: string }[] = [
 	{ id: "incoming", label: "Входящие" },
 	{ id: "outgoing", label: "Исходящие" },
 	{ id: "bonus", label: "Бонусы" },
+	{ id: "games", label: "🎮 Игры" },
 	{ id: "admin", label: "Системные" },
 ];
 
 onMount(() => {
 	load();
-	const interval = setInterval(load, 15_000);
-	return () => clearInterval(interval);
 });
 </script>
 
@@ -196,10 +215,24 @@ onMount(() => {
 									</div>
 									<div class="flex-1 min-w-0">
 										<div class="text-sm font-medium truncate">{typeLabel(tx.type)}</div>
+										{#if tx.description && (tx.type === "game_win" || tx.type === "game_lose")}
+											<div class="text-xs text-[var(--tg-theme-hint-color,#999)]/70 truncate">{tx.description}</div>
+										{/if}
 										<div class="text-xs text-[var(--tg-theme-hint-color,#999)]">
 											{tx.fromUserId
-												? (tx.toUserId === user.id ? 'От #' + tx.fromUserId : 'Кому #' + tx.toUserId)
+												? (tx.toUserId === user.id
+													? 'От #'
+													: 'Кому #')
 												: 'Система'}
+											{#if tx.fromUserId}
+												<span
+													role="button"
+													tabindex="0"
+													onclick={() => handleCopyId(tx.toUserId === user.id ? tx.fromUserId : tx.toUserId)}
+													onkeydown={(e) => e.key === "Enter" && handleCopyId(tx.toUserId === user.id ? tx.fromUserId : tx.toUserId)}
+													class="cursor-pointer hover:text-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
+												>{copiedUserId === (tx.toUserId === user.id ? tx.fromUserId : tx.toUserId) ? "✓" : fmtId(tx.toUserId === user.id ? tx.fromUserId : tx.toUserId)}</span>
+											{/if}
 										</div>
 									</div>
 									<div class="text-right shrink-0">

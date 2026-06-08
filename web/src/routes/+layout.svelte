@@ -10,6 +10,7 @@ onMount(() => {
 		"--tg-bottom-offset",
 		`${window.Telegram?.WebApp?.bottomBarHeight ?? 0}px`,
 	);
+	document.title = "Bipki Bank";
 });
 </script>
 

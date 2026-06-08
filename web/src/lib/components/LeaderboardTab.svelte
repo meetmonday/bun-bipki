@@ -1,11 +1,13 @@
 <script lang="ts">
 import { onMount } from "svelte";
 import { fetchMe, fetchStats, getTelegramInitData, type Stats } from "$lib/api";
+import { copyToClipboard, fmtId } from "$lib/format";
 
 let stats = $state<Stats | null>(null);
 let myId = $state<number | null>(null);
 let myRank = $state<number | null>(null);
 let error = $state("");
+let copiedUserId = $state<number | null>(null);
 
 function fmtNum(n: number) {
 	return n.toLocaleString("ru-RU");
@@ -18,6 +20,14 @@ function getMedal(i: number): string {
 	return "";
 }
 
+async function handleCopyId(rawId: number) {
+	await copyToClipboard(String(rawId));
+	copiedUserId = rawId;
+	setTimeout(() => {
+		if (copiedUserId === rawId) copiedUserId = null;
+	}, 1500);
+}
+
 function getMedalClass(i: number): string {
 	if (i === 0) return "text-[var(--color-gold)]";
 	if (i === 1) return "text-[var(--color-silver)]";
@@ -25,24 +35,29 @@ function getMedalClass(i: number): string {
 	return "text-[var(--tg-theme-hint-color,#999)]";
 }
 
+async function loadMyInfo() {
+	const id = getTelegramInitData();
+	if (!id) return;
+	try {
+		const me = await fetchMe(id);
+		myId = me.user.id;
+		myRank = me.rank;
+	} catch {
+		// silent
+	}
+}
+
 async function load() {
 	try {
 		stats = await fetchStats();
-		const id = getTelegramInitData();
-		if (id) {
-			const me = await fetchMe(id);
-			myId = me.user.id;
-			myRank = me.rank;
-		}
 	} catch (e) {
 		error = String(e);
 	}
 }
 
 onMount(() => {
+	loadMyInfo();
 	load();
-	const interval = setInterval(load, 15_000);
-	return () => clearInterval(interval);
 });
 </script>
 
@@ -90,12 +105,18 @@ onMount(() => {
 
 						<div class="flex-1 min-w-0">
 							<div class="text-sm font-medium truncate flex items-center gap-1.5">
-								{user.name ?? user.username ?? `#${user.id}`}
+								{user.name ?? user.username ?? `#${fmtId(user.id)}`}
 								{#if isMe}
 									<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--tg-theme-accent-text-color,#40a7e3)]/10 text-[var(--tg-theme-accent-text-color,#40a7e3)] font-semibold">Вы</span>
 								{/if}
 							</div>
-							<div class="text-xs text-[var(--tg-theme-hint-color,#999)]">#{user.id}</div>
+							<div
+								role="button"
+								tabindex="0"
+								onclick={() => handleCopyId(user.id)}
+								onkeydown={(e) => e.key === "Enter" && handleCopyId(user.id)}
+								class="text-xs cursor-pointer text-[var(--tg-theme-hint-color,#999)] hover:text-[var(--tg-theme-accent-text-color,#40a7e3)] transition-colors"
+							>{copiedUserId === user.id ? "✓" : `#${fmtId(user.id)}`}</div>
 						</div>
 
 						<div class="text-right shrink-0">

@@ -7,9 +7,15 @@ export default defineConfig({
 	server: {
 		proxy: {
 			"/api": {
-				target: "http://localhost:3000",
+				target: "http://localhost:3069",
 				changeOrigin: true,
 			},
+		},
+		allowedHosts: true,
+		hmr: {
+			host: process.env.HMR_HOST || "bank.mtmnd.ru",
+			protocol: "wss",
+			clientPort: 443,
 		},
 	},
 });
