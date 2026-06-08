@@ -8,6 +8,7 @@ data/
 # SvelteKit
 web/build/
 web/.svelte-kit/
+.svelte-kit/
 
 # SQLite
 *.db
