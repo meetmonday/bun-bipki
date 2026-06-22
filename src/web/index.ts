@@ -48,7 +48,8 @@ async function serveStatic(pathname: string): Promise<Response | null> {
 	if (config.NODE_ENV !== "production") return null;
 
 	const requested = resolve(WEB_ROOT, pathname.slice(1));
-	if (requested !== WEB_ROOT && !requested.startsWith(WEB_ROOT + sep)) return null;
+	if (requested !== WEB_ROOT && !requested.startsWith(WEB_ROOT + sep))
+		return null;
 
 	const file = Bun.file(
 		pathname === "/" ? `${WEB_ROOT}/index.html` : requested,
@@ -164,6 +165,15 @@ export function startWebServer() {
 
 				const staticRes = await serveStatic(path);
 				if (staticRes) return staticRes;
+
+				if (req.method === "GET" && !path.startsWith("/api/") && !path.includes(".")) {
+					const spaFile = Bun.file(`${WEB_ROOT}/index.html`);
+					if (await spaFile.exists()) {
+						return new Response(spaFile, {
+							headers: { "Content-Type": "text/html; charset=utf-8" },
+						});
+					}
+				}
 
 				if (config.NODE_ENV === "development") {
 					const upstreamUrl = `http://localhost:5173${url.pathname}${url.search}`;
