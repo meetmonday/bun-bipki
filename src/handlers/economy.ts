@@ -11,6 +11,7 @@ import {
 	removeCoins,
 	transfer,
 } from "../services/economy.ts";
+import { dailyLimiter, transferLimiter } from "../services/rate-limiter.ts";
 import { fmtId, parseId } from "../shared/format.ts";
 
 const dailyClaimCache = {
@@ -64,6 +65,11 @@ export const economyComposer = new Composer()
 		"transfer",
 		{ description: "Перевести бипки другому пользователю" },
 		async (context) => {
+			const limiterKey = `transfer:${context.from.id}`;
+			if (!transferLimiter.check(limiterKey)) {
+				return context.send("⏳ Слишком много переводов. Подожди немного.");
+			}
+
 			if (!context.args)
 				return context.send("Использование: /transfer <id|@username> <сумма>");
 
@@ -107,6 +113,11 @@ export const economyComposer = new Composer()
 		"daily",
 		{ description: "Получить ежедневный бонус" },
 		async (context) => {
+			const limiterKey = `daily:${context.from.id}`;
+			if (!dailyLimiter.check(limiterKey)) {
+				return context.send("⏳ Слишком много запросов. Подожди.");
+			}
+
 			if (dailyClaimCache.has(context.from.id)) return;
 
 			await ensureUser(context.from.id, {

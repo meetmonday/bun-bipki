@@ -78,15 +78,13 @@ function buildKeyboard(
 	return kb;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: context.t has unresolvable i18n nested key types
-type TContext = { t: (...args: any[]) => unknown };
+// GramIO's `context.t` has a literal-key type that can't express
+// dynamically-constructed keys like `${game.i18nKey}.header`.
+// biome-ignore lint/suspicious/noExplicitAny: required for dynamic i18n keys
+type TContext = { t: (...args: any[]) => string };
 
-function callT(context: TContext, ...args: unknown[]): unknown {
-	return context.t.apply(context, args);
-}
-
-function text(context: TContext, ...args: unknown[]): string {
-	return String(callT(context, ...args));
+function text(ctx: TContext, key: string, ...args: unknown[]): string {
+	return ctx.t(key, ...args);
 }
 
 function buildLogText(context: TContext, log: LogEntry[]): string {

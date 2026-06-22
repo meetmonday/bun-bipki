@@ -1,27 +1,34 @@
 {
-	"version": "7",
-	"dialect": "sqlite",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "6",
-			"when": 1780821059005,
-			"tag": "0000_classy_iron_monger",
-			"breakpoints": true
-		},
-		{
-			"idx": 1,
-			"version": "6",
-			"when": 1780898147006,
-			"tag": "0001_bent_shriek",
-			"breakpoints": true
-		},
-		{
-			"idx": 2,
-			"version": "6",
-			"when": 1780904048913,
-			"tag": "0002_outstanding_clea",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1780821059005,
+      "tag": "0000_classy_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780898147006,
+      "tag": "0001_bent_shriek",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780904048913,
+      "tag": "0002_outstanding_clea",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1782161082531,
+      "tag": "0003_organic_stepford_cuckoos",
+      "breakpoints": true
+    }
+  ]
 }

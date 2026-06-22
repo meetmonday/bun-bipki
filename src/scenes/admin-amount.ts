@@ -4,9 +4,6 @@ import { baseComposer } from "../plugins/base.ts";
 import { addCoins, removeCoins } from "../services/economy.ts";
 import { fmtId } from "../shared/format.ts";
 
-type SceneState = {
-	currency: "bipki" | "megabipki";
-};
 type SceneParams = {
 	userId: number;
 	action: "add" | "remove";
@@ -16,7 +13,7 @@ export const adminAmountScene = new Scene("admin_amount")
 	.params<SceneParams>()
 	.extend(baseComposer)
 	.step("callback_query", async (context) => {
-		const params = context.scene.params as unknown as SceneParams;
+		const params = context.scene.params;
 
 		if (context.scene.step.firstTime) {
 			await context.editText(
@@ -44,8 +41,8 @@ export const adminAmountScene = new Scene("admin_amount")
 			return context.send("Укажи корректное целое число.");
 		}
 
-		const params = context.scene.params as unknown as SceneParams;
-		const { currency } = context.scene.state as unknown as SceneState;
+		const params = context.scene.params;
+		const { currency } = context.scene.state;
 
 		try {
 			if (params.action === "add") {

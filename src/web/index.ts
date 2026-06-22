@@ -1,5 +1,6 @@
 import { resolve, sep } from "node:path";
 import { config } from "../config.ts";
+import { logger } from "../services/logger.ts";
 import { tunnelManager } from "../services/tunnel.ts";
 import { json } from "./middleware.ts";
 import { compileRoutes, type RouteDef } from "./router.ts";
@@ -7,6 +8,7 @@ import { adminCheckRoute } from "./routes/admin.ts";
 import { broadcastRoute } from "./routes/broadcast.ts";
 import { addCoinsRoute, removeCoinsRoute } from "./routes/coins.ts";
 import { dailyRoute } from "./routes/daily.ts";
+import { healthRoute } from "./routes/health.ts";
 import { meRoute } from "./routes/me.ts";
 import { meSummaryRoute } from "./routes/me-summary.ts";
 import { statsRoute } from "./routes/stats.ts";
@@ -20,6 +22,7 @@ import {
 } from "./routes/users.ts";
 
 const routes: RouteDef[] = [
+	healthRoute,
 	statsRoute,
 	listUsersRoute,
 	userByIdRoute,
@@ -121,8 +124,12 @@ export function startWebServer() {
 				try {
 					await handshake;
 				} catch (err) {
-					console.error(
-						`WebSocket relay: failed to connect to Vite (${upstreamUrl}): ${err instanceof Error ? err.message : String(err)}`,
+					logger.error(
+						{
+							upstreamUrl,
+							err: err instanceof Error ? err.message : String(err),
+						},
+						"WebSocket relay: failed to connect to Vite",
 					);
 					upstream.close();
 					return new Response(null, { status: 502 });
@@ -139,8 +146,9 @@ export function startWebServer() {
 
 				if (!upgraded) {
 					upstream.close();
-					console.error(
-						`WebSocket relay: Bun rejected upgrade for ${path} (host: ${req.headers.get("host")})`,
+					logger.error(
+						{ path, host: req.headers.get("host") },
+						"WebSocket relay: Bun rejected upgrade",
 					);
 					return new Response(null, { status: 400 });
 				}
@@ -178,7 +186,10 @@ export function startWebServer() {
 
 				return new Response("Not Found", { status: 404 });
 			} catch (err) {
-				console.error("Web server error:", err);
+				logger.error(
+					{ err: err instanceof Error ? err.message : String(err) },
+					"Web server error",
+				);
 				return json(
 					{ error: err instanceof Error ? err.message : "Internal error" },
 					500,
@@ -229,7 +240,7 @@ export function startWebServer() {
 		},
 	});
 
-	console.log(`🌐 Local API: http://localhost:${port}`);
+	logger.info({ port }, "Local API started");
 }
 
 export function stopWebServer() {

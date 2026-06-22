@@ -1,6 +1,8 @@
 import { asc, eq, sql } from "drizzle-orm";
 import { db } from "../db/index.ts";
 import { transactionsTable, usersTable } from "../db/schema.ts";
+import { transferLock, userLock, withLock } from "./locks.ts";
+import { logger } from "./logger.ts";
 
 export type Currency = "bipki" | "megabipki";
 
@@ -73,48 +75,64 @@ export async function transfer(
 	amount: number,
 	description?: string,
 ) {
-	return db.transaction(async (tx) => {
-		const fromUser = await tx
-			.select()
-			.from(usersTable)
-			.where(eq(usersTable.id, fromId))
-			.get();
+	return withLock(transferLock(fromId, toId), async () => {
+		return db.transaction(async (tx) => {
+			const fromUser = await tx
+				.select()
+				.from(usersTable)
+				.where(eq(usersTable.id, fromId))
+				.get();
 
-		if (!fromUser) throw new Error("Sender not found");
+			if (!fromUser) {
+				logger.warn({ fromId }, "Transfer: sender not found");
+				throw new Error("Sender not found");
+			}
 
-		if (fromUser.bipki < amount) throw new Error("Insufficient funds");
+			if (fromUser.bipki < amount) {
+				logger.warn(
+					{ fromId, balance: fromUser.bipki, amount },
+					"Transfer: insufficient funds",
+				);
+				throw new Error("Insufficient funds");
+			}
 
-		const toUser = await tx
-			.select()
-			.from(usersTable)
-			.where(eq(usersTable.id, toId))
-			.get();
+			const toUser = await tx
+				.select()
+				.from(usersTable)
+				.where(eq(usersTable.id, toId))
+				.get();
 
-		if (!toUser) throw new Error("Recipient not found");
+			if (!toUser) {
+				logger.warn({ toId }, "Transfer: recipient not found");
+				throw new Error("Recipient not found");
+			}
 
-		await tx
-			.update(usersTable)
-			.set({ bipki: sql`${usersTable.bipki} - ${amount}` })
-			.where(eq(usersTable.id, fromId))
-			.run();
+			await tx
+				.update(usersTable)
+				.set({ bipki: sql`${usersTable.bipki} - ${amount}` })
+				.where(eq(usersTable.id, fromId))
+				.run();
 
-		await tx
-			.update(usersTable)
-			.set({ bipki: sql`${usersTable.bipki} + ${amount}` })
-			.where(eq(usersTable.id, toId))
-			.run();
+			await tx
+				.update(usersTable)
+				.set({ bipki: sql`${usersTable.bipki} + ${amount}` })
+				.where(eq(usersTable.id, toId))
+				.run();
 
-		await tx
-			.insert(transactionsTable)
-			.values({
-				fromUserId: fromId,
-				toUserId: toId,
-				amount,
-				currency: "bipki",
-				type: "transfer",
-				description: description ?? null,
-			})
-			.run();
+			await tx
+				.insert(transactionsTable)
+				.values({
+					fromUserId: fromId,
+					toUserId: toId,
+					amount,
+					currency: "bipki",
+					type: "transfer",
+					description: description ?? null,
+				})
+				.run();
+
+			logger.info({ fromId, toId, amount }, "Transfer completed");
+		});
 	});
 }
 
@@ -150,6 +168,8 @@ export async function addCoins(
 				description: description ?? null,
 			})
 			.run();
+
+		logger.info({ userId, amount, currency, type }, "Coins added");
 	});
 }
 
@@ -197,6 +217,8 @@ export async function removeCoins(
 				description: description ?? null,
 			})
 			.run();
+
+		logger.info({ userId, amount, currency, type }, "Coins removed");
 	});
 }
 
@@ -263,69 +285,80 @@ export async function getDailyRewardState(
 }
 
 export async function claimDailyBonus(userId: number) {
-	return db.transaction(async (tx) => {
-		const user = await tx
-			.select()
-			.from(usersTable)
-			.where(eq(usersTable.id, userId))
-			.get();
+	return withLock(userLock(userId), async () => {
+		return db.transaction(async (tx) => {
+			const user = await tx
+				.select()
+				.from(usersTable)
+				.where(eq(usersTable.id, userId))
+				.get();
 
-		if (!user) throw new Error("User not found");
+			if (!user) throw new Error("User not found");
 
-		const today = todayDate();
-		const lastDate = user.lastDailyBonus?.slice(0, 10);
+			const today = todayDate();
+			const lastDate = user.lastDailyBonus?.slice(0, 10);
 
-		if (lastDate === today) {
-			throw new Error("Already claimed today");
-		}
+			if (lastDate === today) {
+				throw new Error("Already claimed today");
+			}
 
-		const yesterday = yesterdayDate();
-		let newStreak = 0;
+			const yesterday = yesterdayDate();
+			let newStreak = 0;
 
-		if (lastDate === yesterday) {
-			newStreak = user.dailyRewardStreak + 1;
-		} else {
-			newStreak = 1;
-		}
+			if (lastDate === yesterday) {
+				newStreak = user.dailyRewardStreak + 1;
+			} else {
+				newStreak = 1;
+			}
 
-		const reward = getDailyRewardByStreak(newStreak);
+			const reward = getDailyRewardByStreak(newStreak);
 
-		await tx
-			.update(usersTable)
-			.set({
-				bipki: sql`${usersTable.bipki} + ${reward.bipki}`,
-				megabipki: sql`${usersTable.megabipki} + ${reward.megabipki}`,
-				lastDailyBonus: new Date().toISOString(),
-				dailyRewardStreak: newStreak,
-			})
-			.where(eq(usersTable.id, userId))
-			.run();
+			await tx
+				.update(usersTable)
+				.set({
+					bipki: sql`${usersTable.bipki} + ${reward.bipki}`,
+					megabipki: sql`${usersTable.megabipki} + ${reward.megabipki}`,
+					lastDailyBonus: new Date().toISOString(),
+					dailyRewardStreak: newStreak,
+				})
+				.where(eq(usersTable.id, userId))
+				.run();
 
-		await tx
-			.insert(transactionsTable)
-			.values({
-				toUserId: userId,
-				amount: reward.bipki,
-				currency: "bipki",
-				type: "daily_bonus",
-				description: `Ежедневный бонус (день ${newStreak})`,
-			})
-			.run();
-
-		if (reward.megabipki > 0) {
 			await tx
 				.insert(transactionsTable)
 				.values({
 					toUserId: userId,
-					amount: reward.megabipki,
-					currency: "megabipki",
+					amount: reward.bipki,
+					currency: "bipki",
 					type: "daily_bonus",
-					description: `Ежедневный мега-бонус (день ${newStreak})`,
+					description: `Ежедневный бонус (день ${newStreak})`,
 				})
 				.run();
-		}
 
-		return { ...reward, streak: newStreak };
+			if (reward.megabipki > 0) {
+				await tx
+					.insert(transactionsTable)
+					.values({
+						toUserId: userId,
+						amount: reward.megabipki,
+						currency: "megabipki",
+						type: "daily_bonus",
+						description: `Ежедневный мега-бонус (день ${newStreak})`,
+					})
+					.run();
+			}
+
+			logger.info(
+				{
+					userId,
+					streak: newStreak,
+					reward: reward.bipki,
+					megareward: reward.megabipki,
+				},
+				"Daily bonus claimed",
+			);
+			return { ...reward, streak: newStreak };
+		});
 	});
 }
 

@@ -1,4 +1,5 @@
 import { type ChildProcess, spawn } from "node:child_process";
+import { logger } from "./logger.ts";
 
 export interface TunnelInfo {
 	url: string | null;
@@ -114,7 +115,7 @@ export class TunnelManager {
 
 			const text = data.toString();
 			if (text.includes(" error ") || text.includes("Error:")) {
-				console.error(`cloudflared: ${text.trim()}`);
+				logger.error({ error: text.trim() }, "cloudflared error");
 			}
 		});
 
@@ -126,7 +127,7 @@ export class TunnelManager {
 				error: err.message,
 			};
 			this.urlReject?.(err);
-			console.error(`cloudflared error: ${err.message}`);
+			logger.error({ err: err.message }, "cloudflared process error");
 		});
 
 		this.process.on("exit", (code) => {
@@ -137,14 +138,14 @@ export class TunnelManager {
 					error: `Process exited with code ${code}`,
 				};
 				this.urlReject?.(new Error(`Process exited with code ${code}`));
-				console.log(`cloudflared exited with code ${code}`);
+				logger.warn({ exitCode: code }, "cloudflared stopped");
 			}
 		});
 	}
 
 	private onUrl(url: string) {
 		this.info = { ...this.info, url, status: "running" };
-		console.log(`🌐 Web UI: ${url}`);
+		logger.info({ url }, "Web UI ready");
 		this.urlResolve?.(url);
 	}
 

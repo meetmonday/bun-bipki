@@ -1,5 +1,6 @@
 import { bot } from "./bot.ts";
 import { config } from "./config.ts";
+import { logger } from "./services/logger.ts";
 import { tunnelManager } from "./services/tunnel.ts";
 import { startWebServer, stopWebServer } from "./web/index.ts";
 
@@ -7,7 +8,7 @@ const signals = ["SIGINT", "SIGTERM"];
 
 for (const signal of signals) {
 	process.on(signal, async () => {
-		console.log(`Received ${signal}. Initiating graceful shutdown...`);
+		logger.info({ signal }, "Initiating graceful shutdown");
 		tunnelManager.stop();
 		stopWebServer();
 		await bot.stop();
@@ -16,11 +17,12 @@ for (const signal of signals) {
 }
 
 process.on("uncaughtException", (error) => {
-	console.error("Uncaught exception:", error);
+	logger.fatal(error, "Uncaught exception");
+	process.exit(1);
 });
 
-process.on("unhandledRejection", (error) => {
-	console.error("Unhandled rejection:", error);
+process.on("unhandledRejection", (reason) => {
+	logger.error({ reason }, "Unhandled rejection");
 });
 
 startWebServer();
@@ -43,11 +45,12 @@ if (config.NODE_ENV !== "test") {
 					web_app: { url: tunnelUrl },
 				},
 			});
-			console.log(`✅ Mini App назначен: ${tunnelUrl}`);
+			logger.info({ tunnelUrl }, "Mini App assigned");
 		}
 	} catch (err) {
-		console.error(
-			`⚠️  Mini App не назначен: ${err instanceof Error ? err.message : String(err)}`,
+		logger.error(
+			{ err: err instanceof Error ? err.message : String(err) },
+			"Failed to assign Mini App",
 		);
 	}
 }

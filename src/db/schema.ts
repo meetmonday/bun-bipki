@@ -1,42 +1,59 @@
 import {
+	index,
 	integer,
 	primaryKey,
 	sqliteTable,
 	text,
+	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
-export const usersTable = sqliteTable("users", {
-	id: integer("id", { mode: "number" }).primaryKey(),
+export const usersTable = sqliteTable(
+	"users",
+	{
+		id: integer("id", { mode: "number" }).primaryKey(),
 
-	name: text("name"),
-	username: text("username"),
-	startParameter: text("start_parameter"),
+		name: text("name"),
+		username: text("username"),
+		startParameter: text("start_parameter"),
 
-	languageCode: text("language_code"),
+		languageCode: text("language_code"),
 
-	bipki: integer("bipki").notNull().default(0),
-	megabipki: integer("megabipki").notNull().default(0),
+		bipki: integer("bipki").notNull().default(0),
+		megabipki: integer("megabipki").notNull().default(0),
 
-	lastDailyBonus: text("last_daily_bonus"),
-	dailyRewardStreak: integer("daily_reward_streak").notNull().default(0),
+		lastDailyBonus: text("last_daily_bonus"),
+		dailyRewardStreak: integer("daily_reward_streak").notNull().default(0),
 
-	createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
-});
+		createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
+		updatedAt: text("updated_at").$defaultFn(() => new Date().toISOString()),
+	},
+	(table) => ({
+		usernameIdx: uniqueIndex("users_username_idx").on(table.username),
+	}),
+);
 
-export const transactionsTable = sqliteTable("transactions", {
-	id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+export const transactionsTable = sqliteTable(
+	"transactions",
+	{
+		id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
 
-	fromUserId: integer("from_user_id", { mode: "number" }),
-	toUserId: integer("to_user_id", { mode: "number" }),
+		fromUserId: integer("from_user_id", { mode: "number" }),
+		toUserId: integer("to_user_id", { mode: "number" }),
 
-	amount: integer("amount").notNull(),
-	currency: text("currency").notNull(),
-	type: text("type").notNull(),
+		amount: integer("amount").notNull(),
+		currency: text("currency").notNull(),
+		type: text("type").notNull(),
 
-	description: text("description"),
+		description: text("description"),
 
-	createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
-});
+		createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
+	},
+	(table) => ({
+		fromUserIdx: index("tx_from_user_idx").on(table.fromUserId),
+		toUserIdx: index("tx_to_user_idx").on(table.toUserId),
+		createdAtIdx: index("tx_created_at_idx").on(table.createdAt),
+	}),
+);
 
 export const chatMembersTable = sqliteTable(
 	"chat_members",
@@ -53,17 +70,23 @@ export const chatMembersTable = sqliteTable(
 export type User = typeof usersTable.$inferSelect;
 export type InsertUser = typeof usersTable.$inferInsert;
 
-export const gameLogTable = sqliteTable("game_log", {
-	id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-	userId: integer("user_id", { mode: "number" }).notNull(),
-	game: text("game").notNull(),
-	bet: integer("bet").notNull(),
-	currency: text("currency").notNull().default("bipki"),
-	choice: text("choice"),
-	win: integer("win", { mode: "boolean" }).notNull(),
-	payout: integer("payout").notNull(),
-	createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
-});
+export const gameLogTable = sqliteTable(
+	"game_log",
+	{
+		id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+		userId: integer("user_id", { mode: "number" }).notNull(),
+		game: text("game").notNull(),
+		bet: integer("bet").notNull(),
+		currency: text("currency").notNull().default("bipki"),
+		choice: text("choice"),
+		win: integer("win", { mode: "boolean" }).notNull(),
+		payout: integer("payout").notNull(),
+		createdAt: text("created_at").$defaultFn(() => new Date().toISOString()),
+	},
+	(table) => ({
+		userIdx: index("game_log_user_idx").on(table.userId),
+	}),
+);
 
 export type Transaction = typeof transactionsTable.$inferSelect;
 export type InsertTransaction = typeof transactionsTable.$inferInsert;
