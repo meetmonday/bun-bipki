@@ -1,4 +1,6 @@
 FROM oven/bun:1.2.5 AS base
+RUN curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared && \
+    chmod +x /usr/local/bin/cloudflared
 WORKDIR /usr/src/app
 
 FROM base AS install

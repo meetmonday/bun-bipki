@@ -12,8 +12,6 @@ services:
               required: false
             - path: ./.env.production
               required: false
-        ports:
-            - "3069:3069"
         volumes:
             - bot_data:/usr/src/app/data
             - ./drizzle:/usr/src/app/drizzle
