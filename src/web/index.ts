@@ -48,7 +48,7 @@ async function serveStatic(pathname: string): Promise<Response | null> {
 	if (config.NODE_ENV !== "production") return null;
 
 	const requested = resolve(WEB_ROOT, pathname.slice(1));
-	if (!requested.startsWith(WEB_ROOT + sep)) return null;
+	if (requested !== WEB_ROOT && !requested.startsWith(WEB_ROOT + sep)) return null;
 
 	const file = Bun.file(
 		pathname === "/" ? `${WEB_ROOT}/index.html` : requested,
