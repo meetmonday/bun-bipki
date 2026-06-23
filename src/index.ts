@@ -22,6 +22,14 @@ process.on("uncaughtException", (error) => {
 });
 
 process.on("unhandledRejection", (reason) => {
+	if (
+		reason &&
+		typeof reason === "object" &&
+		"method" in reason &&
+		reason.method === "editMessageText"
+	) {
+		return;
+	}
 	logger.error({ reason }, "Unhandled rejection");
 });
 
