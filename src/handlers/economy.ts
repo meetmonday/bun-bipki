@@ -48,6 +48,10 @@ async function resolveTarget(raw: string): Promise<number | null> {
 
 export const economyComposer = new Composer()
 	.extend(composer)
+	.use((ctx, next) => {
+		if (ctx.from?.isBot) return;
+		return next();
+	})
 	.command("balance", { description: "Показать баланс" }, async (context) => {
 		await ensureUser(context.from.id, {
 			name: context.from.firstName,

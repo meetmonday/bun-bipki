@@ -101,6 +101,10 @@ function buildLogText(context: TContext, log: LogEntry[]): string {
 
 export const gamesComposer = new Composer()
 	.extend(composer)
+	.use((ctx, next) => {
+		if (ctx.from?.isBot) return;
+		return next();
+	})
 
 	.inlineQuery(/^(\d+)$/, async (context) => {
 		const bet = Number(context.args?.[1] ?? 0);
