@@ -225,7 +225,7 @@ export const gamesComposer = new Composer()
 
 		if (action === "x2" || action === "x05") {
 			const multiplier = action === "x2" ? 2 : 0.5;
-			const newBet = clampBet(Math.floor(bet * multiplier));
+			const newBet = clampBet(Math.floor(session.bet * multiplier));
 			session.bet = newBet;
 
 			const header = text(context, `${game.i18nKey}.header`, newBet);
@@ -246,6 +246,8 @@ export const gamesComposer = new Composer()
 			return;
 		}
 
+		const currentBet = session.bet;
+
 		await ensureUser(userId, {
 			name: context.from.firstName,
 			username: context.from.username,
@@ -253,7 +255,7 @@ export const gamesComposer = new Composer()
 		});
 
 		const balance = await getBalance(userId);
-		if (balance.bipki < bet) {
+		if (balance.bipki < currentBet) {
 			await context.answer({
 				text: text(context, "games.insufficient_funds"),
 				show_alert: true,
@@ -261,24 +263,24 @@ export const gamesComposer = new Composer()
 			return;
 		}
 
-		const result = game.resolve(bet, action);
+		const result = game.resolve(currentBet, action);
 
 		try {
 			if (result.win) {
 				await addCoins(
 					userId,
-					bet,
+					currentBet,
 					"bipki",
 					"game_win",
-					`${game.emoji} ${game.id} win (bet ${bet})`,
+					`${game.emoji} ${game.id} win (bet ${currentBet})`,
 				);
 			} else {
 				await removeCoins(
 					userId,
-					bet,
+					currentBet,
 					"bipki",
 					"game_lose",
-					`${game.emoji} ${game.id} loss (bet ${bet})`,
+					`${game.emoji} ${game.id} loss (bet ${currentBet})`,
 				);
 			}
 		} catch {
@@ -289,13 +291,13 @@ export const gamesComposer = new Composer()
 			return;
 		}
 
-		const payout = result.win ? bet * 2 : 0;
+		const payout = result.win ? currentBet * 2 : 0;
 		await db
 			.insert(gameLogTable)
 			.values({
 				userId,
 				game: game.id,
-				bet,
+				bet: currentBet,
 				currency: "bipki",
 				choice: action,
 				win: result.win,
@@ -313,7 +315,7 @@ export const gamesComposer = new Composer()
 			player: playerName,
 			emoji: result.outcomeEmoji,
 			won: result.win,
-			amount: result.win ? bet * 2 : bet,
+			amount: result.win ? currentBet * 2 : currentBet,
 		});
 
 		const newBalance = await getBalance(userId);
@@ -331,7 +333,7 @@ export const gamesComposer = new Composer()
 		}
 
 		const toast = result.win
-			? text(context, "games.toast_win", bet, newBalance.bipki)
-			: text(context, "games.toast_lose", bet, newBalance.bipki);
+			? text(context, "games.toast_win", currentBet, newBalance.bipki)
+			: text(context, "games.toast_lose", currentBet, newBalance.bipki);
 		await context.answer(toast);
 	});
