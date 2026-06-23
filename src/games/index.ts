@@ -37,7 +37,7 @@ interface LogEntry {
 
 interface GameSession {
 	bet: number;
-	log: LogEntry[];
+	log: Map<number, LogEntry>;
 	updatedAt: number;
 }
 
@@ -87,9 +87,9 @@ function text(ctx: TContext, key: string, ...args: unknown[]): string {
 	return ctx.t(key, ...args);
 }
 
-function buildLogText(context: TContext, log: LogEntry[]): string {
-	if (log.length === 0) return "";
-	const lines = log.map((entry) => {
+function buildLogText(context: TContext, log: Map<number, LogEntry>): string {
+	if (log.size === 0) return "";
+	const lines = [...log.values()].map((entry) => {
 		const result = entry.won
 			? text(context, "games.log_win", entry.amount)
 			: text(context, "games.log_lose");
@@ -144,7 +144,7 @@ export const gamesComposer = new Composer()
 		const sessionId = Math.random().toString(36).slice(2, 10);
 		sessions.set(sessionId, {
 			bet,
-			log: [],
+			log: new Map(),
 			updatedAt: Date.now(),
 		});
 
@@ -216,7 +216,7 @@ export const gamesComposer = new Composer()
 
 		let session = sessions.get(sessionId);
 		if (!session) {
-			session = { bet, log: [], updatedAt: Date.now() };
+			session = { bet, log: new Map(), updatedAt: Date.now() };
 			sessions.set(sessionId, session);
 		}
 		session.updatedAt = Date.now();
@@ -235,7 +235,11 @@ export const gamesComposer = new Composer()
 			const logText = buildLogText(context, session.log);
 			const messageText = logText ? `${header}\n\n${logText}` : header;
 
-			await context.editText(messageText, { reply_markup: keyboard });
+			try {
+				await context.editText(messageText, { reply_markup: keyboard });
+			} catch {
+				// rate-limited; cosmetic only, state is already correct
+			}
 			await context.answer({
 				text: text(context, "games.bet_changed", newBet),
 			});
@@ -299,22 +303,18 @@ export const gamesComposer = new Composer()
 			})
 			.run();
 
-		const prevEntry = session.log[session.log.length - 1];
-		const showPlayer = !prevEntry || prevEntry.userId !== userId;
-		const playerName = showPlayer
-			? context.from.username || context.from.firstName
-			: "";
+		const prevEntry = session.log.get(userId);
+		const playerName = prevEntry
+			? ""
+			: context.from.username || context.from.firstName;
 
-		session.log.push({
+		session.log.set(userId, {
 			userId,
 			player: playerName,
 			emoji: result.outcomeEmoji,
 			won: result.win,
 			amount: result.win ? bet * 2 : bet,
 		});
-		if (session.log.length > 10) {
-			session.log = session.log.slice(-10);
-		}
 
 		const newBalance = await getBalance(userId);
 		const header = text(context, `${game.i18nKey}.header`, session.bet);
@@ -324,7 +324,11 @@ export const gamesComposer = new Composer()
 			text(context, key),
 		);
 
-		await context.editText(messageText, { reply_markup: keyboard });
+		try {
+			await context.editText(messageText, { reply_markup: keyboard });
+		} catch {
+			// rate-limited; cosmetic only, state is already correct
+		}
 
 		const toast = result.win
 			? text(context, "games.toast_win", bet, newBalance.bipki)
