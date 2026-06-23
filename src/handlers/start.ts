@@ -6,7 +6,7 @@ import { tunnelManager } from "../services/tunnel.ts";
 export const startComposer = new Composer()
 	.extend(composer)
 	.command("start", { description: "Запустить бота" }, async (context) => {
-		if (context.from.isBot) return;
+		if (context.from.isBot()) return;
 
 		await ensureUser(context.from.id, {
 			name: context.from.firstName,

@@ -46,13 +46,14 @@ async function resolveTarget(raw: string): Promise<number | null> {
 	return Number.isInteger(id) ? id : null;
 }
 
+function skipBot(ctx: { from?: { isBot(): boolean } }): boolean {
+	return !!ctx.from?.isBot();
+}
+
 export const economyComposer = new Composer()
 	.extend(composer)
-	.use((ctx, next) => {
-		if (ctx.from?.isBot) return;
-		return next();
-	})
 	.command("balance", { description: "Показать баланс" }, async (context) => {
+		if (skipBot(context)) return;
 		await ensureUser(context.from.id, {
 			name: context.from.firstName,
 			username: context.from.username,
@@ -69,6 +70,7 @@ export const economyComposer = new Composer()
 		"transfer",
 		{ description: "Перевести бипки другому пользователю" },
 		async (context) => {
+			if (skipBot(context)) return;
 			const limiterKey = `transfer:${context.from.id}`;
 			if (!transferLimiter.check(limiterKey)) {
 				return context.send("⏳ Слишком много переводов. Подожди немного.");
@@ -117,6 +119,7 @@ export const economyComposer = new Composer()
 		"daily",
 		{ description: "Получить ежедневный бонус" },
 		async (context) => {
+			if (skipBot(context)) return;
 			const limiterKey = `daily:${context.from.id}`;
 			if (!dailyLimiter.check(limiterKey)) {
 				return context.send("⏳ Слишком много запросов. Подожди.");
@@ -150,6 +153,7 @@ export const economyComposer = new Composer()
 		"history",
 		{ description: "История транзакций" },
 		async (context) => {
+			if (skipBot(context)) return;
 			await ensureUser(context.from.id, {
 				name: context.from.firstName,
 				username: context.from.username,
@@ -199,6 +203,7 @@ export const economyComposer = new Composer()
 		"give",
 		{ description: "[Админ] Начислить валюту пользователю", hide: true },
 		async (context) => {
+			if (skipBot(context)) return;
 			if (!config.ADMIN_IDS.includes(context.from.id)) {
 				return context.send("У тебя нет прав на эту команду.");
 			}
@@ -246,6 +251,7 @@ export const economyComposer = new Composer()
 		"take",
 		{ description: "[Админ] Снять валюту у пользователя", hide: true },
 		async (context) => {
+			if (skipBot(context)) return;
 			if (!config.ADMIN_IDS.includes(context.from.id)) {
 				return context.send("У тебя нет прав на эту команду.");
 			}

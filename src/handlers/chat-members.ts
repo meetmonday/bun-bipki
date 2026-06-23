@@ -5,7 +5,7 @@ import { ensureUser } from "../services/economy.ts";
 
 export const chatMembersComposer = new Composer().on("message", async (ctx) => {
 	if (ctx.chat.type !== "group" && ctx.chat.type !== "supergroup") return;
-	if (ctx.from.isBot) return;
+	if (ctx.from.isBot()) return;
 
 	await ensureUser(ctx.from.id, {
 		name: ctx.from.firstName,

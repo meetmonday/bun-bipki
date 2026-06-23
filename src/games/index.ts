@@ -99,14 +99,15 @@ function buildLogText(context: TContext, log: LogEntry[]): string {
 	return lines.join("\n");
 }
 
+function skipBot(ctx: { from?: { isBot(): boolean } }): boolean {
+	return !!ctx.from?.isBot();
+}
+
 export const gamesComposer = new Composer()
 	.extend(composer)
-	.use((ctx, next) => {
-		if (ctx.from?.isBot) return;
-		return next();
-	})
 
 	.inlineQuery(/^(\d+)$/, async (context) => {
+		if (skipBot(context)) return;
 		const bet = Number(context.args?.[1] ?? 0);
 
 		const userId = context.from.id;
@@ -173,6 +174,7 @@ export const gamesComposer = new Composer()
 	.inlineQuery(
 		() => true,
 		async (context) => {
+			if (skipBot(context)) return;
 			const userId = context.from.id;
 			await ensureUser(userId, {
 				name: context.from.firstName,
@@ -204,6 +206,7 @@ export const gamesComposer = new Composer()
 	)
 
 	.callbackQuery(gameAction, async (context) => {
+		if (skipBot(context)) return;
 		const { s: sessionId, g: gameId, b: bet, a: action } = context.queryData;
 		const game = games.find((g) => g.id === gameId);
 		if (!game) {
